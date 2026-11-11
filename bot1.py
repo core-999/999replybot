@@ -162,7 +162,7 @@ def main_buttons():
             url=f"https://t.me/{BOT_USERNAME}?startgroup=s&delete_message+manage_video_chats_message+invite_users")
           )
     kb.row(    
-         InlineKeyboardButton("𝐂𝐇𝐀𝐍𝐍𝐄𝐋", url="https://t.me/myanmarbot_music"),
+         InlineKeyboardButton("𝐂𝐇𝐀𝐍𝐍Ե𝐋", url="https://t.me/myanmarbot_music"),
          InlineKeyboardButton(" 𝐒𝐔𝐏𝐏𝐎𝐑𝐓 ", url="https://t.me/myanmar_music_Bot2027")
           )
     kb.row(  
@@ -374,7 +374,7 @@ def reply_toggle(message):
                      reply_markup=kb, parse_mode="HTML")
 
 # ======================
-# BROADCAST SYSTEM
+# BROADCAST SYSTEM (Auto-Cleanup for Blocked/Kicked chats)
 # ======================
 @bot.message_handler(commands=["broadcast"])
 def broadcast(message):
@@ -394,6 +394,7 @@ def broadcast(message):
     
     success = 0
     fail = 0
+    removed_chats = []
 
     for tid in all_targets:
         try:
@@ -405,12 +406,27 @@ def broadcast(message):
             success += 1
             time.sleep(0.1)
         except Exception as e:
-            print(f"Broadcast failed for {tid}: {e}")
+            err_str = str(e)
+            # 📌 Bot ကို Block လုပ်ထားတာ (သို့) Group ကနေ ထုတ်ထားတာ (Kicked/Forbidden) ဆိုရင် ဖယ်ရှားရန် စာရင်းသွင်းမည်
+            if "Forbidden" in err_str or "kicked" in err_str or "chat not found" in err_str or "blocked" in err_str:
+                removed_chats.append(tid)
             fail += 1
             continue
 
+    # 🧹 Block လုပ်ထားသော User များနှင့် Kicked ဖြစ်သော Group များကို Database မှ အလိုအလျောက် ဖယ်ရှားခြင်း
+    if removed_chats:
+        for r_id in removed_chats:
+            if r_id in data.get("groups", []):
+                data["groups"].remove(r_id)
+            if r_id in data.get("users", []):
+                data["users"].remove(r_id)
+            if str(r_id) in data.get("reply_on_chats", {}):
+                del data["reply_on_chats"][str(r_id)]
+        save_data()
+        print(f"🧹 Cleaned up {len(removed_chats)} blocked/kicked chats from database.")
+
     bot.edit_message_text(
-        f"✅ <b>Broadcast ပို့ပြီးပါပြီ!</b>\n\n🟢 အောင်မြင်: {success}\n🔴 ကျရှုံး: {fail}",
+        f"✅ <b>Broadcast ပို့ပြီးပါပြီ!</b>\n\n🟢 အောင်မြင်: {success}\n🔴 ကျရှုံး: {fail}\n🗑️ ပယ်ဖျက်လိုက်သော ID ဟောင်းများ: {len(removed_chats)} ခု",
         chat_id=message.chat.id,
         message_id=status_msg.message_id,
         parse_mode="HTML"
@@ -461,7 +477,7 @@ def start(message):
         message.chat.id, 
         "<tg-emoji emoji-id='5251299553239398548'>🤖</tg-emoji> <b>𝐀𝐮𝐭𝐨 𝐑𝐞𝐩𝐥𝐲 & 𝐒𝐩𝐚𝐦 𝐥𝐢𝐧𝐤 𝐆𝐫𝐨𝐮𝐩 𝐇𝐞𝐥𝐩 𝐁𝐨𝐭 Online!</b>\n\n"
         "<tg-emoji emoji-id='5240241223632954241'>🚫</tg-emoji> 𝐁𝐢𝐨 / 𝐉𝐨𝐢𝐧 / 𝐋𝐢𝐧𝐤 𝐬𝐩𝐚𝐦 𝐚𝐮𝐭𝐨 𝐝𝐞𝐥𝐞𝐭𝐞\n"
-        "<tg-emoji emoji-id='6271786398404055377'>⚠️</tg-emoji> 𝟑 𝐖𝐚𝐫𝐧𝐢𝐧gs = 𝐀𝐮𝐭𝐨 𝐌𝐮𝐭𝐞\n\n"
+        "<tg-emoji emoji-id='6271786398404055377'>⚠️</tg-emoji> 𝟑 𝐖𝐚𝐫𝐧𝐢𝐧𝐠𝐬 = 𝐀𝐮𝐭𝐨 𝐌𝐮𝐭𝐞\n\n"
         "<tg-emoji emoji-id='5226945370684140473'>➕</tg-emoji> 𝐁𝐨𝐭 ကို 𝐆𝐫𝐨𝐮𝐩 ထဲထည့်ပြီး 𝐀𝐝𝐦𝐢𝐧 ပေးထားပါ။",
         reply_markup=main_buttons()
     )
@@ -522,7 +538,13 @@ def handle_all(message):
         if not is_admin(chat_id, user_id):
             try:
                 bot.delete_message(chat_id, message.message_id)
-            except:
+            except Exception as e:
+                err_str = str(e)
+                # 📌 Group ထဲမှာ Bot ကို Kicked လုပ်ထားရင် စာရင်းထဲက ချက်ချင်း ဖြုတ်ထုတ်မည်
+                if "Forbidden" in err_str or "kicked" in err_str:
+                    if chat_id in data.get("groups", []):
+                        data["groups"].remove(chat_id)
+                        save_data()
                 pass
             
             key = strike_key(chat_id, user_id)
@@ -567,6 +589,15 @@ def handle_all(message):
             try:
                 bot.reply_to(message, reply_text, parse_mode=None)
             except Exception as e:
+                err_str = str(e)
+                # 📌 အကယ်၍ Bot ကို Group ကနေ ထုတ်ထားရင် (Forbidden) စာရင်းထဲက အလိုအလျောက် ဖြုတ်ထုတ်မည်
+                if "Forbidden" in err_str or "kicked" in err_str or "chat not found" in err_str:
+                    if chat_id in data.get("groups", []):
+                        data["groups"].remove(chat_id)
+                        if str(chat_id) in data.get("reply_on_chats", {}):
+                            del data["reply_on_chats"][str(chat_id)]
+                        save_data()
+                        print(f"🧹 Auto-removed kicked group {chat_id} from database.")
                 print(f"⚠️ Reply error: {e}")
 
 # ======================
