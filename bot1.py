@@ -162,7 +162,7 @@ def main_buttons():
             url=f"https://t.me/{BOT_USERNAME}?startgroup=s&delete_message+manage_video_chats_message+invite_users")
           )
     kb.row(    
-         InlineKeyboardButton("𝐂𝐇𝐀𝐍𝐍Ե𝐋", url="https://t.me/myanmarbot_music"),
+         InlineKeyboardButton("𝐂𝐇𝐀𝐍𝐍𝐄𝐋", url="https://t.me/myanmarbot_music"),
          InlineKeyboardButton(" 𝐒𝐔𝐏𝐏𝐎𝐑𝐓 ", url="https://t.me/myanmar_music_Bot2027")
           )
     kb.row(  
