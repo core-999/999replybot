@@ -532,6 +532,7 @@ def start(message):
         "🤖 <b>𝐀𝐮𝐭𝐨 𝐑𝐞𝐩𝐥𝐲 & 𝐒𝐩𝐚𝐦 𝐇𝐞𝐥𝐩 𝐁𝐨𝐭 Online!</b>\n\n"
         "🚫 𝐁𝐢𝐨 / 𝐉𝐨𝐢𝐧 / 𝐋𝐢𝐧𝐤 𝐬𝐩𝐚𝐦 𝐚𝐮𝐭𝐨 𝐝𝐞𝐥𝐞𝐭𝐞\n"
         "⚠️ 3 Warnings = Auto Mute\n\n"
+        "💕 /rp ဖြင့် Group မှာ Auto စာပြန်ဖွင့်ပေးပါ။\n"
         "➕ Bot ကို Group ထဲထည့်ပြီး Admin ပေးပါ။",
         reply_markup=main_buttons())
 
@@ -607,7 +608,7 @@ def welcome_group(message):
             if user.id == bot.get_me().id:
                 safe_send(message.chat.id,
                     "🤖 <b>𝐀𝐮𝐭𝐨 𝐑𝐞𝐩𝐥𝐲 & 𝐒𝐩𝐚𝐦 𝐇𝐞𝐥𝐩 𝐁𝐨𝐭 Active!</b>\n\n"
-                    "❤️ Admin ပေးထားဖို့ မမေ့ပါနဲ့။",
+                    "❤️ Admin ပေးထားဖို့ မမေ့ပါနဲ့။\n /rp ဖြင့် Groupမှာ Auto စာပြန်ဖွင့်ပေးပါ။",
                     reply_markup=main_buttons())
         except Exception:
             pass
