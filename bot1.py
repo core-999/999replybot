@@ -69,10 +69,6 @@ def init_db():
             brain_collection.create_index("input_text")
         except Exception:
             pass
-        try:
-            brain_collection.delete_many({"sticker_id": {"$ne": None, "$ne": ""}})
-        except Exception:
-            pass
     except Exception:
         print("❌ MongoDB Connection Error")
 
